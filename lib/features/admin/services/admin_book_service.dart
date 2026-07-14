@@ -1,0 +1,54 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class AdminBookService {
+  static final FirebaseFirestore _firestore =
+      FirebaseFirestore.instance;
+
+  static Future<int> totalBooks() async {
+    final snapshot =
+    await _firestore.collection('books').get();
+
+    return snapshot.docs.length;
+  }
+
+  static Future<int> totalUsers() async {
+    final snapshot =
+    await _firestore.collection('users').get();
+
+    return snapshot.docs.length;
+  }
+
+  static Future<int> totalWishlist() async {
+    final users =
+    await _firestore.collection('users').get();
+
+    int total = 0;
+
+    for (var user in users.docs) {
+      final wishlist = await user.reference
+          .collection('wishlist')
+          .get();
+
+      total += wishlist.docs.length;
+    }
+
+    return total;
+  }
+
+  static Future<int> totalLibrary() async {
+    final users =
+    await _firestore.collection('users').get();
+
+    int total = 0;
+
+    for (var user in users.docs) {
+      final library = await user.reference
+          .collection('library')
+          .get();
+
+      total += library.docs.length;
+    }
+
+    return total;
+  }
+}

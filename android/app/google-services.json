@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "605022676427",
+    "project_id": "bookverse-afae9",
+    "storage_bucket": "bookverse-afae9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605022676427:android:4bf8065ae934310c5c824e",
+        "android_client_info": {
+          "package_name": "com.arif.bookverse.bookverse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "605022676427-94s46btnc3jhckf7f4o4n9t7uk0e305t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arif.bookverse.bookverse",
+            "certificate_hash": "ef664c17aabde1d3d8fa28f5e43239cd278ad400"
+          }
+        },
+        {
+          "client_id": "605022676427-96lngavccc23rkn7eqnka3roslubg6vs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNOVlgoAdG1xrzXm96ZAwyl5IhSbes7cM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "605022676427-96lngavccc23rkn7eqnka3roslubg6vs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "605022676427-h90vdr1lcb4186ac3g2jbr2p041mvr9p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.arif.bookverse.bookverse"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
