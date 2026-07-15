@@ -11,7 +11,7 @@
 
     <application
         android:name="${applicationName}"
-        android:label="bookverse"
+        android:label="BookVerse"
         android:icon="@mipmap/ic_launcher">
 
         <activity

@@ -4,6 +4,8 @@ import '../../core/theme/app_colors.dart';
 import '../../navigation/main_navigation.dart';
 import 'services/google_auth_service.dart';
 import 'widgets/auth_header.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../admin/screens/admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,18 +28,38 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (userCredential != null) {
+        final uid = userCredential.user!.uid;
+
+        final doc = await FirebaseFirestore.instance
+            .collection("users")
+            .doc(uid)
+            .get();
+
+        final role = doc.data()?["role"] ?? "user";
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Login Successful"),
           ),
         );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const MainNavigation(),
-          ),
-        );
+        if (role == "admin") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AdminDashboard(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const MainNavigation(),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;

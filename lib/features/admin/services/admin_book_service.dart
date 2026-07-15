@@ -34,6 +34,21 @@ class AdminBookService {
 
     return total;
   }
+  static Stream<QuerySnapshot> recentBooks() {
+    return FirebaseFirestore.instance
+        .collection("books")
+        .orderBy("createdAt", descending: true)
+        .limit(5)
+        .snapshots();
+  }
+
+  static Stream<QuerySnapshot> recentUsers() {
+    return FirebaseFirestore.instance
+        .collection("users")
+        .orderBy("createdAt", descending: true)
+        .limit(5)
+        .snapshots();
+  }
 
   static Future<int> totalLibrary() async {
     final users =
