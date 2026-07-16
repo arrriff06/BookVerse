@@ -70,9 +70,6 @@ flutter:
 
   assets:
     - assets/images/onboarding/
-    - assets/icons/
-    - assets/animations/
-    - assets/json/
     - assets/logo/
 flutter_launcher_icons:
   android: true
