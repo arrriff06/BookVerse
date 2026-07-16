@@ -39,17 +39,16 @@ jobs:
 
       - name: Verify signing files
         run: |
-          echo "===== android directory ====="
           ls -la android
-
-          echo "===== key.properties ====="
           cat android/key.properties
-
-          echo "===== keystore info ====="
-          file android/upload-keystore.jks
-          wc -c android/upload-keystore.jks
+          keytool -list -keystore android/upload-keystore.jks -storepass "${{ secrets.STORE_PASSWORD }}"
 
       - run: flutter build apk --release
+
+      - name: Print APK certificate
+        run: |
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | head -n 1)
+          $APKSIGNER verify --print-certs build/app/outputs/flutter-apk/app-release.apk
 
       - uses: actions/upload-artifact@v4
         with:
