@@ -22,22 +22,32 @@ jobs:
         with:
           channel: stable
 
-      # Decode the keystore from GitHub Secret
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
 
-      # Create key.properties
       - name: Create key.properties
         run: |
-          cat <<EOF > android/key.properties
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          cat > android/key.properties <<EOF
+          storePassword=${{ secrets.STORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=upload-keystore.jks
           EOF
 
       - run: flutter pub get
+
+      - name: Verify signing files
+        run: |
+          echo "===== android directory ====="
+          ls -la android
+
+          echo "===== key.properties ====="
+          cat android/key.properties
+
+          echo "===== keystore info ====="
+          file android/upload-keystore.jks
+          wc -c android/upload-keystore.jks
 
       - run: flutter build apk --release
 
