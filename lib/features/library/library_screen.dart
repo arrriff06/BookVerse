@@ -3,14 +3,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../books/models/book_model.dart';
-import '../books/widgets/book_card.dart';
+import '../books/screens/book_details_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Please login to view your library."),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -20,8 +28,9 @@ class LibraryScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
-            .doc(uid)
+            .doc(user.uid)
             .collection('library')
+            .orderBy('addedAt', descending: true)
             .snapshots(),
         builder: (context, librarySnapshot) {
           if (librarySnapshot.connectionState ==
@@ -35,52 +44,142 @@ class LibraryScreen extends StatelessWidget {
               librarySnapshot.data!.docs.isEmpty) {
             return const Center(
               child: Text(
-                "Your library is empty 📚",
+                "No books in your library 📚",
                 style: TextStyle(fontSize: 18),
               ),
             );
           }
 
-          final ids =
-          librarySnapshot.data!.docs.map((e) => e.id).toList();
+          final docs = librarySnapshot.data!.docs;
 
-          return FutureBuilder<QuerySnapshot>(
-            future: FirebaseFirestore.instance
-                .collection('books')
-                .where(FieldPath.documentId, whereIn: ids)
-                .get(),
-            builder: (context, booksSnapshot) {
-              if (booksSnapshot.connectionState ==
-                  ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final bookId =
+              docs[index]['bookId'] as String;
 
-              if (!booksSnapshot.hasData ||
-                  booksSnapshot.data!.docs.isEmpty) {
-                return const Center(
-                  child: Text("No books found"),
-                );
-              }
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('books')
+                    .doc(bookId)
+                    .get(),
+                builder: (context, bookSnapshot) {
+                  if (!bookSnapshot.hasData) {
+                    return const SizedBox();
+                  }
 
-              final books = booksSnapshot.data!.docs
-                  .map((doc) => BookModel.fromFirestore(doc))
-                  .toList();
+                  if (!bookSnapshot.data!.exists) {
+                    return const SizedBox();
+                  }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: books.length,
-                gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.50,
-                ),
-                itemBuilder: (context, index) {
-                  return BookCard(
-                    book: books[index],
+                  final book =
+                  BookModel.fromFirestore(bookSnapshot.data!);
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: InkWell(
+                      borderRadius:
+                      BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                BookDetailsScreen(book: book),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius:
+                              BorderRadius.circular(10),
+                              child: Image.network(
+                                book.coverImage,
+                                width: 90,
+                                height: 130,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+
+                            const SizedBox(width: 15),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    book.title,
+                                    maxLines: 2,
+                                    overflow:
+                                    TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight:
+                                      FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 6),
+
+                                  Text(
+                                    book.author,
+                                    style:
+                                    const TextStyle(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 10),
+
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        book.rating
+                                            .toString(),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 10),
+
+                                  FilledButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              BookDetailsScreen(
+                                                  book: book),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(
+                                        Icons.menu_book),
+                                    label:
+                                    const Text("Read"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   );
                 },
               );

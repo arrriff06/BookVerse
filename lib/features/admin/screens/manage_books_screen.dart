@@ -3,62 +3,49 @@ import 'package:flutter/material.dart';
 
 import '../../books/models/book_model.dart';
 import '../../books/services/book_service.dart';
-
-import '../widgets/admin_book_card.dart';
-import '../widgets/admin_search_bar.dart';
-import '../widgets/delete_book_dialog.dart';
-
 import 'edit_book_screen.dart';
 
-class ManageBooksScreen extends StatefulWidget {
+class ManageBooksScreen extends StatelessWidget {
   const ManageBooksScreen({super.key});
 
-  @override
-  State<ManageBooksScreen> createState() => _ManageBooksScreenState();
-}
-
-class _ManageBooksScreenState extends State<ManageBooksScreen> {
-  final TextEditingController _searchController =
-  TextEditingController();
-
-  String search = "";
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  List<BookModel> filterBooks(List<BookModel> books) {
-    if (search.isEmpty) return books;
-
-    return books.where((book) {
-      return book.title
-          .toLowerCase()
-          .contains(search.toLowerCase()) ||
-          book.author
-              .toLowerCase()
-              .contains(search.toLowerCase());
-    }).toList();
-  }
-
-  Future<void> deleteBook(BookModel book) async {
-    final confirm =
-    await showDeleteBookDialog(context);
+  Future<void> _deleteBook(
+      BuildContext context,
+      String bookId,
+      ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Delete Book"),
+        content: const Text(
+          "Are you sure you want to delete this book?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
 
     if (confirm != true) return;
 
-    await BookService.deleteBook(book.id);
+    await FirebaseFirestore.instance
+        .collection("books")
+        .doc(bookId)
+        .delete();
 
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "${book.title} deleted successfully",
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Book deleted"),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -66,128 +53,142 @@ class _ManageBooksScreenState extends State<ManageBooksScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Manage Books"),
-        centerTitle: true,
       ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("books")
+            .orderBy("createdAt", descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
+          if (!snapshot.hasData ||
+              snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text("No books found"),
+            );
+          }
 
-            AdminSearchBar(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  search = value;
-                });
-              },
-            ),
+          final books = snapshot.data!.docs
+              .map((e) => BookModel.fromFirestore(e))
+              .toList();
 
-            const SizedBox(height: 20),
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: books.length,
+            separatorBuilder: (_, __) =>
+            const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final book = books[index];
 
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: BookService.getBooks(),
-                builder: (context, snapshot) {
-
-                  if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(snapshot.error.toString()),
-                    );
-                  }
-
-                  if (!snapshot.hasData ||
-                      snapshot.data!.docs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        "No Books Found",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+              return Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(15),
+                ),
+                child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius:
+                    BorderRadius.circular(10),
+                    child: Image.network(
+                      book.coverImage,
+                      width: 60,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => Container(
+                        width: 60,
+                        height: 80,
+                        color: Colors.grey.shade300,
+                        child: const Icon(
+                          Icons.menu_book,
                         ),
                       ),
-                    );
-                  }
-
-                  final books = snapshot.data!.docs
-                      .map(
-                        (doc) =>
-                        BookModel.fromFirestore(doc),
-                  )
-                      .toList();
-
-                  final filteredBooks =
-                  filterBooks(books);
-
-                  return Column(
+                    ),
+                  ),
+                  title: Text(
+                    book.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
                     children: [
-
-                      Align(
-                        alignment:
-                        Alignment.centerLeft,
-                        child: Padding(
-                          padding:
-                          const EdgeInsets.only(
-                              bottom: 12),
-                          child: Text(
-                            "Total Books : ${filteredBooks.length}",
-                            style: const TextStyle(
-                              fontWeight:
-                              FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: () async {},
-                          child: ListView.builder(
-                            itemCount:
-                            filteredBooks.length,
-                            itemBuilder:
-                                (context, index) {
-                              final book =
-                              filteredBooks[index];
-
-                              return AdminBookCard(
-                                book: book,
-
-                                onEdit: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditBookScreen(
-                                            book: book,
-                                          ),
-                                    ),
-                                  );
-                                },
-
-                                onDelete: () {
-                                  deleteBook(book);
-                                },
-                              );
-                            },
-                          ),
+                      Text(book.author),
+                      const SizedBox(height: 4),
+                      Text(
+                        book.category,
+                        style: TextStyle(
+                          color:
+                          Colors.grey.shade600,
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                  ),
+                  trailing: PopupMenuButton<int>(
+                    onSelected: (value) {
+                      if (value == 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                EditBookScreen(
+                                  book: book,
+                                ),
+                          ),
+                        );
+                      }
+
+                      if (value == 1) {
+                        _deleteBook(
+                          context,
+                          book.id,
+                        );
+                      }
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: 0,
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit),
+                            SizedBox(width: 10),
+                            Text("Edit"),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 1,
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              "Delete",
+                              style: TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

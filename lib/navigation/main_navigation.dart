@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'package:bookverse/features/home/home_screen.dart';
+import 'package:bookverse/features/home/screens/home_screen.dart';
 import 'package:bookverse/features/search/search_screen.dart';
 import 'package:bookverse/features/library/library_screen.dart';
 import 'package:bookverse/features/wishlist/wishlist_screen.dart';
-import 'package:bookverse/features/profile/profile_screen.dart';
+import 'package:bookverse/features/profile/screens/profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});

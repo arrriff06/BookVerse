@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import '../books/screens/book_details_screen.dart';
 import '../books/models/book_model.dart';
 import '../books/widgets/book_card.dart';
 
@@ -82,6 +82,16 @@ class WishlistScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   return BookCard(
                     book: books[index],
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookDetailsScreen(
+                            book: books[index],
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               );

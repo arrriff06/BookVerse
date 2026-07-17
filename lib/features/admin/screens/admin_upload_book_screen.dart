@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../books/widgets/upload_cover_widget.dart';
-import '../../books/widgets/custom_text_field.dart';
-
-import '../../books/widgets/category_dropdown.dart';
-import '../../books/widgets/upload_button.dart';
-
 import '../../books/models/book_model.dart';
 import '../../books/services/book_service.dart';
 import '../../books/services/cloudinary_service.dart';
+
+import '../../books/widgets/category_dropdown.dart';
+import '../../books/widgets/custom_text_field.dart';
+import '../../books/widgets/upload_button.dart';
+import '../../books/widgets/upload_cover_widget.dart';
 
 class AdminUploadBookScreen extends StatefulWidget {
   const AdminUploadBookScreen({super.key});
@@ -28,9 +27,19 @@ class _AdminUploadBookScreenState
   final _titleController = TextEditingController();
   final _authorController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _ratingController = TextEditingController();
+
   final _pagesController = TextEditingController();
+
+  final _pdfUrlController = TextEditingController();
+
+  final _languageController = TextEditingController(
+    text: "English",
+  );
+
+  final _publisherController = TextEditingController();
+
+  final _publishedYearController = TextEditingController();
+
   String? _selectedCategory;
 
   File? _coverImage;
@@ -42,9 +51,12 @@ class _AdminUploadBookScreenState
     _titleController.dispose();
     _authorController.dispose();
     _descriptionController.dispose();
-    _priceController.dispose();
-    _ratingController.dispose();
     _pagesController.dispose();
+    _pdfUrlController.dispose();
+    _languageController.dispose();
+    _publisherController.dispose();
+    _publishedYearController.dispose();
+
     super.dispose();
   }
 
@@ -62,13 +74,23 @@ class _AdminUploadBookScreenState
       });
     }
   }
+
   Future<void> _uploadBook() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_coverImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please select a book cover"),
+          content: Text("Please select a cover image"),
+        ),
+      );
+      return;
+    }
+
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select category"),
         ),
       );
       return;
@@ -79,35 +101,55 @@ class _AdminUploadBookScreenState
     });
 
     try {
-      // Upload image to Firebase Storage
       final imageUrl =
       await CloudinaryService.uploadImage(_coverImage!);
 
       if (imageUrl == null) {
-        throw Exception("Image upload failed.");
+        throw Exception("Image upload failed");
       }
 
-      // Create book object
       final book = BookModel(
         id: "",
+
         title: _titleController.text.trim(),
         author: _authorController.text.trim(),
         description: _descriptionController.text.trim(),
+
         category: _selectedCategory!,
         coverImage: imageUrl,
-        price: double.tryParse(_priceController.text) ?? 0,
-        rating: double.tryParse(_ratingController.text) ?? 0,
-        pages: int.tryParse(_pagesController.text) ?? 0,
+
+        // Not used in digital library
+        price: 0,
+        rating: 0,
+
+        pages:
+        int.tryParse(_pagesController.text.trim()) ?? 0,
+
+        pdfUrl: _pdfUrlController.text.trim(),
+
+        language: _languageController.text.trim(),
+
+        publisher: _publisherController.text.trim(),
+
+        publishedDate: "",
+
+        publishedYear:
+        _publishedYearController.text.trim(),
+
+        featured: false,
+        trending: false,
+
+        downloads: 0,
+        readers: 0,
       );
 
-      // Save to Firestore
       await BookService.uploadBook(book);
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Book uploaded successfully ✅"),
+          content: Text("Book uploaded successfully"),
         ),
       );
 
@@ -117,15 +159,15 @@ class _AdminUploadBookScreenState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Upload failed: $e"),
+          content: Text(e.toString()),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -135,84 +177,106 @@ class _AdminUploadBookScreenState
       appBar: AppBar(
         title: const Text("Upload Book"),
       ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
 
-            UploadCoverWidget(
-              image: _coverImage,
-              onTap: _pickCoverImage,
-            ),
+              UploadCoverWidget(
+                image: _coverImage,
+                onTap: _pickCoverImage,
+              ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 25),
 
-            CustomTextField(
-              controller: _titleController,
-              label: "Book Title",
-              icon: Icons.menu_book_rounded,
-            ),
+              CustomTextField(
+                controller: _titleController,
+                label: "Book Title",
+                icon: Icons.menu_book,
+              ),
 
-            CustomTextField(
-              controller: _authorController,
-              label: "Author",
-              icon: Icons.person,
-            ),
+              const SizedBox(height: 15),
 
-            CustomTextField(
-              controller: _descriptionController,
-              label: "Description",
-              icon: Icons.description,
-              maxLines: 5,
-            ),
+              CustomTextField(
+                controller: _authorController,
+                label: "Author",
+                icon: Icons.person,
+              ),
 
-            CategoryDropdown(
-              value: _selectedCategory,
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value;
-                });
-              },
-            ),
+              const SizedBox(height: 15),
 
-            CustomTextField(
-              controller: _priceController,
-              label: "Price",
-              icon: Icons.currency_rupee,
-              keyboardType: TextInputType.number,
-            ),
+              CustomTextField(
+                controller: _descriptionController,
+                label: "Description",
+                icon: Icons.description,
+                maxLines: 5,
+              ),
 
-            CustomTextField(
-              controller: _ratingController,
-              label: "Rating",
-              icon: Icons.star,
-              keyboardType: TextInputType.number,
-            ),
+              const SizedBox(height: 15),
 
-            CustomTextField(
-              controller: _pagesController,
-              label: "Pages",
-              icon: Icons.menu_book_outlined,
-              keyboardType: TextInputType.number,
-            ),
+              CategoryDropdown(
+                value: _selectedCategory,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                },
+              ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 15),
 
-        UploadButton(
-          isLoading: _isLoading,
-          onPressed: () {
-            print("UPLOAD BUTTON CLICKED");
-            _uploadBook();
-          },
+              CustomTextField(
+                controller: _pagesController,
+                label: "Pages",
+                icon: Icons.menu_book_outlined,
+                keyboardType: TextInputType.number,
+              ),
+
+              const SizedBox(height: 15),
+
+              CustomTextField(
+                controller: _pdfUrlController,
+                label: "PDF URL (GitHub Raw Link)",
+                icon: Icons.picture_as_pdf,
+              ),
+
+              const SizedBox(height: 15),
+
+              CustomTextField(
+                controller: _languageController,
+                label: "Language",
+                icon: Icons.language,
+              ),
+
+              const SizedBox(height: 15),
+
+              CustomTextField(
+                controller: _publisherController,
+                label: "Publisher",
+                icon: Icons.business,
+              ),
+
+              const SizedBox(height: 15),
+
+              CustomTextField(
+                controller: _publishedYearController,
+                label: "Published Year",
+                icon: Icons.calendar_today,
+                keyboardType: TextInputType.number,
+              ),
+
+              const SizedBox(height: 35),
+
+              UploadButton(
+                isLoading: _isLoading,
+                onPressed: _uploadBook,
+              ),
+            ],
+          ),
         ),
-
-          ],
-        ),
-        ),
-        ),
+      ),
     );
   }
 }

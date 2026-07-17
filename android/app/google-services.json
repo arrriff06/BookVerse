@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "605022676427-jirggqtbtrr5oo4o7vqghcc418o20o80.apps.googleusercontent.com",
+          "client_id": "605022676427-94s46btnc3jhckf7f4o4n9t7uk0e305t.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.arif.bookverse.bookverse",
-            "certificate_hash": "8f907ecb1e516070461d83202c20c7299f3875f3"
+            "certificate_hash": "ef664c17aabde1d3d8fa28f5e43239cd278ad400"
           }
         },
         {
