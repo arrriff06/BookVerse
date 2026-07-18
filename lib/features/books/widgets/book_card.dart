@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../library/services/library_service.dart';
 import '../models/book_model.dart';
 
 class BookCard extends StatelessWidget {
@@ -12,7 +13,6 @@ class BookCard extends StatelessWidget {
     required this.onTap,
   });
 
-  @override
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -27,18 +27,51 @@ class BookCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Expanded(
               flex: 7,
-              child: Hero(
-                tag: book.id,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Image.network(
-                    book.coverImage,
-                    fit: BoxFit.cover,
+              child: Stack(
+                children: [
+                  Hero(
+                    tag: book.id,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: Image.network(
+                        book.coverImage,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                ),
+
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.white,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.library_add,
+                          size: 20,
+                        ),
+                        onPressed: () async {
+                          await LibraryService.addToLibrary(book);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "${book.title} added to Library 📚",
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -49,7 +82,6 @@ class BookCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       book.title,
                       maxLines: 2,
@@ -76,7 +108,6 @@ class BookCard extends StatelessWidget {
 
                     Row(
                       children: [
-
                         const Icon(
                           Icons.star,
                           size: 16,

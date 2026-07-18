@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../reader/screens/pdf_reader_screen.dart';
 import '../../reader/services/download_service.dart';
 import '../models/book_model.dart';
-
+import 'package:bookverse/features/library/services/library_service.dart';
 class BookDetailsScreen extends StatelessWidget {
   final BookModel book;
 
@@ -224,8 +224,32 @@ class BookDetailsScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        // Add to Library
+                      onPressed: () async {
+                        debugPrint("Save button clicked");
+
+                        try {
+                          await LibraryService.addToLibrary(book);
+
+                          debugPrint("Book saved successfully");
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Book added to Library"),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          debugPrint("ERROR: $e");
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                              ),
+                            );
+                          }
+                        }
                       },
                       icon: const Icon(Icons.library_add),
                       label: const Text("Save to Library"),

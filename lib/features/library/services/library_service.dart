@@ -1,63 +1,120 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class LibraryService {
-  LibraryService._();
+import '../../books/models/book_model.dart';
 
+class LibraryService {
   static final FirebaseFirestore _firestore =
       FirebaseFirestore.instance;
 
   static final FirebaseAuth _auth =
       FirebaseAuth.instance;
 
-  static String get uid => _auth.currentUser!.uid;
+  /// Add book to library
+  static Future<void> addToLibrary(BookModel book) async {
+    final user = _auth.currentUser;
 
-  /// Add Book
-  static Future<void> addBook(String bookId) async {
+    if (user == null) return;
+
     await _firestore
         .collection('users')
-        .doc(uid)
+        .doc(user.uid)
         .collection('library')
-        .doc(bookId)
+        .doc(book.id)
         .set({
-      'bookId': bookId,
-      'status': 'reading',
-      'addedAt': FieldValue.serverTimestamp(),
+      "addedAt": FieldValue.serverTimestamp(),
+      "status": "Want to Read",
+      "progress": 0,
+      "currentPage": 0,
+      "lastRead": FieldValue.serverTimestamp(),
     });
   }
 
-  /// Remove Book
-  static Future<void> removeBook(String bookId) async {
+  /// Remove book
+  static Future<void> removeFromLibrary(
+      String bookId,
+      ) async {
+    final user = _auth.currentUser;
+
+    if (user == null) return;
+
     await _firestore
         .collection('users')
-        .doc(uid)
+        .doc(user.uid)
         .collection('library')
         .doc(bookId)
         .delete();
   }
 
-  /// Check if book exists
-  static Stream<bool> isInLibrary(String bookId) {
+  /// Check if already saved
+  static Stream<bool> isInLibrary(
+      String bookId,
+      ) {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return Stream.value(false);
+    }
+
     return _firestore
         .collection('users')
-        .doc(uid)
+        .doc(user.uid)
         .collection('library')
         .doc(bookId)
         .snapshots()
         .map((doc) => doc.exists);
   }
 
-  /// Library IDs
-  static Stream<List<String>> libraryIds() {
+  /// Get all library books
+  static Stream<List<BookModel>> getLibraryBooks() {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return Stream.value([]);
+    }
+
     return _firestore
         .collection('users')
-        .doc(uid)
+        .doc(user.uid)
         .collection('library')
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-          .map((e) => e.id)
-          .toList(),
-    );
+        .asyncMap((snapshot) async {
+      List<BookModel> books = [];
+
+      for (final doc in snapshot.docs) {
+        final bookDoc = await _firestore
+            .collection('books')
+            .doc(doc.id)
+            .get();
+
+        if (bookDoc.exists) {
+          books.add(BookModel.fromFirestore(bookDoc));
+        }
+      }
+
+      return books;
+    });
+  }
+
+  /// Update reading progress
+  static Future<void> updateProgress({
+    required String bookId,
+    required int currentPage,
+    required int progress,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) return;
+
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('library')
+        .doc(bookId)
+        .update({
+      "currentPage": currentPage,
+      "progress": progress,
+      "lastRead": FieldValue.serverTimestamp(),
+    });
   }
 }

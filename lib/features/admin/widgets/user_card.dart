@@ -1,113 +1,132 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../models/user_model.dart';
 
 class UserCard extends StatelessWidget {
-  final QueryDocumentSnapshot user;
+  final UserModel user;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onToggleBlock;
+  final VoidCallback onToggleRole;
 
   const UserCard({
     super.key,
     required this.user,
     required this.onTap,
     required this.onDelete,
+    required this.onToggleBlock,
+    required this.onToggleRole,
   });
 
   @override
   Widget build(BuildContext context) {
-    final data = user.data() as Map<String, dynamic>;
-
-    final name = data['name'] ?? 'Unknown User';
-    final email = data['email'] ?? 'No Email';
-    final phone = data['phone'] ?? 'Not Available';
-    final image = data['image'] ?? '';
-
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 3,
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+      child: ListTile(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 34,
-                backgroundColor: AppColors.primary.withOpacity(.1),
-                backgroundImage:
-                image.isNotEmpty ? NetworkImage(image) : null,
-                child: image.isEmpty
-                    ? const Icon(
-                  Icons.person,
-                  size: 34,
-                  color: AppColors.primary,
-                )
-                    : null,
+
+        leading: CircleAvatar(
+          radius: 28,
+          backgroundImage:
+          user.photo.isNotEmpty ? NetworkImage(user.photo) : null,
+          child: user.photo.isEmpty
+              ? const Icon(Icons.person)
+              : null,
+        ),
+
+        title: Text(
+          user.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(user.email),
+
+            const SizedBox(height: 6),
+
+            Wrap(
+              spacing: 8,
+              children: [
+
+                Chip(
+                  backgroundColor:
+                  user.role == "admin"
+                      ? Colors.green.shade100
+                      : Colors.blue.shade100,
+                  label: Text(
+                    user.role.toUpperCase(),
+                  ),
+                ),
+
+                if (user.blocked)
+                  Chip(
+                    backgroundColor: Colors.red.shade100,
+                    label: const Text("BLOCKED"),
+                  ),
+              ],
+            ),
+          ],
+        ),
+
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) {
+            switch (value) {
+              case "role":
+                onToggleRole();
+                break;
+
+              case "block":
+                onToggleBlock();
+                break;
+
+              case "delete":
+                onDelete();
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+
+            PopupMenuItem(
+              value: "role",
+              child: Text(
+                user.role == "admin"
+                    ? "Make User"
+                    : "Make Admin",
               ),
+            ),
 
-              const SizedBox(width: 16),
+            PopupMenuItem(
+              value: "block",
+              child: Text(
+                user.blocked
+                    ? "Unblock User"
+                    : "Block User",
+              ),
+            ),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+            const PopupMenuDivider(),
 
-                    const SizedBox(height: 6),
-
-                    Text(
-                      email,
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      phone,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+            const PopupMenuItem(
+              value: "delete",
+              child: Text(
+                "Delete User",
+                style: TextStyle(
+                  color: Colors.red,
                 ),
               ),
-
-              Column(
-                children: [
-                  IconButton(
-                    onPressed: onTap,
-                    icon: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: onDelete,
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      color: Colors.red,
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

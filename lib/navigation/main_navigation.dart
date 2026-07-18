@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:bookverse/features/home/screens/home_screen.dart';
-import 'package:bookverse/features/search/search_screen.dart';
-import 'package:bookverse/features/library/library_screen.dart';
-import 'package:bookverse/features/wishlist/wishlist_screen.dart';
+import 'package:bookverse/features/search/screens/search_screen.dart';
+import 'package:bookverse/features/library/screens/library_screen.dart';
+import 'package:bookverse/features/wishlist/screens/wishlist_screen.dart';
 import 'package:bookverse/features/profile/screens/profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {

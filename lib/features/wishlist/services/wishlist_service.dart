@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:bookverse/features/books/models/book_model.dart';
 class WishlistService {
   WishlistService._();
 
@@ -30,6 +30,37 @@ class WishlistService {
         .collection('wishlist')
         .doc(bookId)
         .delete();
+  }
+  static Stream<List<BookModel>> getWishlistBooks() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('wishlist')
+        .snapshots()
+        .asyncMap((snapshot) async {
+      List<BookModel> books = [];
+
+      for (final doc in snapshot.docs) {
+        final bookId = doc.id;
+
+        final bookDoc = await FirebaseFirestore.instance
+            .collection('books')
+            .doc(bookId)
+            .get();
+
+        if (bookDoc.exists) {
+          books.add(BookModel.fromFirestore(bookDoc));
+        }
+      }
+
+      return books;
+    });
   }
 
   /// Check if book exists
