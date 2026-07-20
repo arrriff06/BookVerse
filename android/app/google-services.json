@@ -14,11 +14,19 @@
       },
       "oauth_client": [
         {
-          "client_id": "605022676427-94s46btnc3jhckf7f4o4n9t7uk0e305t.apps.googleusercontent.com",
+          "client_id": "605022676427-o5u50u4e3jmaoa3ls99r6k4h7jj6degv.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.arif.bookverse.bookverse",
             "certificate_hash": "ef664c17aabde1d3d8fa28f5e43239cd278ad400"
+          }
+        },
+        {
+          "client_id": "605022676427-u6o3693colr2hgpk6t1s6k1b5nbs03lt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arif.bookverse.bookverse",
+            "certificate_hash": "3de4b31d378cdd16635ec23bd74accfc0c20d24d"
           }
         },
         {

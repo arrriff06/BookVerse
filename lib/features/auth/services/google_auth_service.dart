@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -7,16 +9,14 @@ class GoogleAuthService {
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   static final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   static Future<UserCredential?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser =
-      await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      if (googleUser == null) {
-        return null;
-      }
+      if (googleUser == null) return null;
 
       final GoogleSignInAuthentication googleAuth =
       await googleUser.authentication;
@@ -43,8 +43,15 @@ class GoogleAuthService {
       }
 
       return userCredential;
-    } catch (e) {
-      print(e);
+    } on FirebaseAuthException catch (e, s) {
+      log('FirebaseAuthException',
+          error: e, stackTrace: s, name: 'GoogleAuth');
+      log('code=${e.code}', name: 'GoogleAuth');
+      log('message=${e.message}', name: 'GoogleAuth');
+      rethrow;
+    } catch (e, s) {
+      log('Exception',
+          error: e, stackTrace: s, name: 'GoogleAuth');
       rethrow;
     }
   }
