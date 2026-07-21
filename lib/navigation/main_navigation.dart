@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:bookverse/features/home/screens/home_screen.dart';
 import 'package:bookverse/features/search/screens/search_screen.dart';
 import 'package:bookverse/features/library/screens/library_screen.dart';
-import 'package:bookverse/features/wishlist/screens/wishlist_screen.dart';
 import 'package:bookverse/features/profile/screens/profile_screen.dart';
-
+import 'package:bookverse/features/request_book/screens/request_book_screen.dart';
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -19,7 +18,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> pages = [
     const HomeScreen(),
     const SearchScreen(),
-    const WishlistScreen(),
+    const RequestBookScreen(),
     const LibraryScreen(),
     const ProfileScreen(),
   ];
@@ -49,9 +48,9 @@ class _MainNavigationState extends State<MainNavigation> {
             label: "Search",
           ),
           NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite),
-            label: "Wishlist",
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
+            label: "Request",
           ),
           NavigationDestination(
             icon: Icon(Icons.local_library_outlined),
