@@ -16,21 +16,42 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      margin: const EdgeInsets.only(right: 10),
-      child: ChoiceChip(
-        label: Text(title),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primary,
-        backgroundColor: Colors.white,
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.w600,
+    return InkWell(
+      borderRadius: BorderRadius.circular(30),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 11,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary
+              : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : Colors.grey.shade300,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .04),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: selected
+                ? Colors.white
+                : Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
