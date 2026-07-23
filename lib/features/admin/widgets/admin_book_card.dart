@@ -136,17 +136,6 @@ class AdminBookCard extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  Text(
-                    "₹${book.price.toStringAsFixed(0)}",
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
                   Row(
                     children: [
 

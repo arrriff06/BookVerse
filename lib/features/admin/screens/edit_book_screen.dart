@@ -61,9 +61,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
     _publishedYearController =
         TextEditingController(text: b.publishedYear);
 
-    _priceController =
-        TextEditingController(text: b.price.toString());
-
     _ratingController =
         TextEditingController(text: b.rating.toString());
 
@@ -106,7 +103,6 @@ class _EditBookScreenState extends State<EditBookScreen> {
       category: _category ?? "",
       coverImage: _coverController.text.trim(),
 
-      price: double.tryParse(_priceController.text) ?? 0,
       rating: double.tryParse(_ratingController.text) ?? 0,
       pages: int.tryParse(_pagesController.text) ?? 0,
 

@@ -6,6 +6,9 @@ import '../providers/request_book_provider.dart';
 import '../services/request_book_service.dart';
 import '../widgets/request_form.dart';
 import '../widgets/request_status_card.dart';
+import '../../notifications/screens/notification_screen.dart';
+import '../../books/services/book_service.dart';
+import '../../books/screens/book_details_screen.dart';
 
 class RequestBookScreen extends ConsumerStatefulWidget {
   const RequestBookScreen({super.key});
@@ -120,12 +123,15 @@ class _RequestBookScreenState
 
         actions: [
           IconButton(
+            icon: const Icon(Icons.notifications_rounded),
             onPressed: () {
-              // Notification screen later
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationScreen(),
+                ),
+              );
             },
-            icon: const Icon(
-              Icons.notifications_rounded,
-            ),
           ),
         ],
       ),
@@ -272,8 +278,36 @@ class _RequestBookScreenState
                         RequestStatusCard(
                           request: request,
 
-                          onRead: () {
-                            // Open uploaded book later
+                          onRead: () async {
+                            if (request.bookId.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Book isn't available yet."),
+                                ),
+                              );
+                              return;
+                            }
+
+                            try {
+                              final book = await BookService.getBook(request.bookId);
+
+                              if (!context.mounted) return;
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BookDetailsScreen(book: book),
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.toString()),
+                                ),
+                              );
+                            }
                           },
 
                           onFeedback: () {

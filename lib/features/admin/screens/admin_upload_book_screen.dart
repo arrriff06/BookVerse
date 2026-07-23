@@ -119,7 +119,6 @@ class _AdminUploadBookScreenState
         coverImage: imageUrl,
 
         // Not used in digital library
-        price: 0,
         rating: 0,
 
         pages:

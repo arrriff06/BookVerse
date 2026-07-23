@@ -1,148 +1,212 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../request_book/models/request_book_model.dart';
 import '../services/admin_request_service.dart';
 import '../widgets/request_card.dart';
+import '../widgets/request_filter_chip.dart';
+import '../widgets/request_status_dialog.dart';
+import '../widgets/upload_book_dialog.dart';
 
-class BookRequestsScreen extends ConsumerStatefulWidget {
+class BookRequestsScreen extends StatefulWidget {
   const BookRequestsScreen({super.key});
 
   @override
-  ConsumerState<BookRequestsScreen> createState() =>
+  State<BookRequestsScreen> createState() =>
       _BookRequestsScreenState();
 }
 
 class _BookRequestsScreenState
-    extends ConsumerState<BookRequestsScreen> {
-  String filter = "all";
-  String search = "";
+    extends State<BookRequestsScreen> {
+  String selectedFilter = "All";
+
+  final TextEditingController searchController =
+  TextEditingController();
+
+  final List<String> filters = [
+    "All",
+    "Pending",
+    "Uploaded",
+    "Rejected",
+  ];
+
+  Stream<QuerySnapshot> getRequests() {
+    return FirebaseFirestore.instance
+        .collection("request_books")
+        .orderBy(
+      "createdAt",
+      descending: true,
+    )
+        .snapshots();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Book Requests"),
-        centerTitle: true,
       ),
-      body: StreamBuilder<List<RequestBookModel>>(
-        stream: AdminRequestService.getRequests(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          List<RequestBookModel> requests =
-          snapshot.data!;
-
-          //----------------------------------------
+      body: Column(
+        children: [
+          //------------------------------------
           // Search
-          //----------------------------------------
+          //------------------------------------
 
-          if (search.isNotEmpty) {
-            requests = requests.where((e) {
-              return e.bookName
-                  .toLowerCase()
-                  .contains(
-                search.toLowerCase(),
-              ) ||
-                  e.author
-                      .toLowerCase()
-                      .contains(
-                    search.toLowerCase(),
-                  ) ||
-                  e.userName
-                      .toLowerCase()
-                      .contains(
-                    search.toLowerCase(),
-                  );
-            }).toList();
-          }
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: "Search book or author",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius:
+                  BorderRadius.circular(15),
+                ),
+              ),
+              onChanged: (_) {
+                setState(() {});
+              },
+            ),
+          ),
 
-          //----------------------------------------
-          // Filter
-          //----------------------------------------
+          //------------------------------------
+          // Filters
+          //------------------------------------
 
-          if (filter != "all") {
-            requests = requests
-                .where(
-                  (e) =>
-              e.status == filter,
-            )
-                .toList();
-          }
-
-          return Column(
-            children: [
-
-              //----------------------------------
-              // Search
-              //----------------------------------
-
-              Padding(
-                padding:
-                const EdgeInsets.all(16),
-                child: TextField(
-                  decoration:
-                  const InputDecoration(
-                    hintText:
-                    "Search requests...",
-                    prefixIcon:
-                    Icon(Icons.search),
+          SizedBox(
+            height: 45,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding:
+              const EdgeInsets.symmetric(
+                horizontal: 16,
+              ),
+              itemCount: filters.length,
+              itemBuilder: (_, index) {
+                return Padding(
+                  padding:
+                  const EdgeInsets.only(
+                    right: 10,
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      search = value;
-                    });
-                  },
-                ),
-              ),
+                  child: RequestFilterChip(
+                    title: filters[index],
+                    selected:
+                    filters[index] ==
+                        selectedFilter,
+                    onTap: () {
+                      setState(() {
+                        selectedFilter =
+                        filters[index];
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
 
-              //----------------------------------
-              // Filters
-              //----------------------------------
+          const SizedBox(height: 15),
 
-              SingleChildScrollView(
-                scrollDirection:
-                Axis.horizontal,
-                padding:
-                const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
-                child: Row(
-                  children: [
+          //------------------------------------
+          // Requests
+          //------------------------------------
 
-                    _chip("all", "All"),
+          Expanded(
+            child:
+            StreamBuilder<QuerySnapshot>(
+              stream: getRequests(),
+              builder:
+                  (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                    child:
+                    CircularProgressIndicator(),
+                  );
+                }
 
-                    _chip(
-                        "pending",
-                        "Pending"),
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      snapshot.error.toString(),
+                    ),
+                  );
+                }
 
-                    _chip(
-                        "uploading",
-                        "Uploading"),
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child:
+                    Text("No Requests"),
+                  );
+                }
 
-                    _chip(
-                        "uploaded",
-                        "Uploaded"),
+                List<RequestBookModel> requests =
+                snapshot.data!.docs
+                    .map(
+                      (e) =>
+                      RequestBookModel
+                          .fromFirestore(
+                          e),
+                )
+                    .toList();
 
-                    _chip(
-                        "rejected",
-                        "Rejected"),
-                  ],
-                ),
-              ),
+                //--------------------------------
+                // Status Filter
+                //--------------------------------
 
-              const SizedBox(height: 12),
+                if (selectedFilter != "All") {
+                  requests = requests
+                      .where(
+                        (request) =>
+                    request.status
+                        .toLowerCase() ==
+                        selectedFilter
+                            .toLowerCase(),
+                  )
+                      .toList();
+                }
 
-              //----------------------------------
-              // Requests
-              //----------------------------------
+                //--------------------------------
+                // Search Filter
+                //--------------------------------
 
-              Expanded(
-                child: ListView.builder(
+                final keyword =
+                searchController.text
+                    .trim()
+                    .toLowerCase();
+
+                if (keyword.isNotEmpty) {
+                  requests = requests
+                      .where(
+                        (request) =>
+                    request.bookName
+                        .toLowerCase()
+                        .contains(
+                        keyword) ||
+                        request.author
+                            .toLowerCase()
+                            .contains(
+                            keyword),
+                  )
+                      .toList();
+                }
+
+                if (requests.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No matching requests.",
+                    ),
+                  );
+                }
+
+                return ListView.builder(
                   padding:
                   const EdgeInsets.all(
                       16),
@@ -157,48 +221,83 @@ class _BookRequestsScreenState
                       request: request,
 
                       onView: () {
-                        // next
-                      },
-
-                      onUpload: () async {
-                        await AdminRequestService
-                            .setUploading(
-                          request.id,
+                        ScaffoldMessenger.of(
+                            context)
+                            .showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              request.notes
+                                  .isEmpty
+                                  ? "No notes added."
+                                  : request.notes,
+                            ),
+                          ),
                         );
                       },
 
-                      onReject: () async {
-                        await AdminRequestService
-                            .rejectRequest(
-                          request.id,
+                      onUpload: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              UploadBookDialog(
+                                request: request,
+                              ),
+                        );
+                      },
+
+                      onReject: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) =>
+                              RequestStatusDialog(
+                                currentStatus:
+                                request.status,
+                                onSave:
+                                    (status) async {
+                                  switch (
+                                  status) {
+                                    case "uploading":
+                                      await AdminRequestService
+                                          .setUploading(
+                                        requestId:
+                                        request.id,
+                                        uid: request
+                                            .uid,
+                                        bookName:
+                                        request
+                                            .bookName,
+                                      );
+                                      break;
+
+                                    case "uploaded":
+                                      break;
+
+                                    case "rejected":
+                                      await AdminRequestService
+                                          .rejectRequest(
+                                        requestId:
+                                        request.id,
+                                        uid: request
+                                            .uid,
+                                        reason:
+                                        "Rejected by Admin",
+                                        bookName:
+                                        request
+                                            .bookName,
+                                      );
+                                      break;
+                                  }
+                                },
+                              ),
                         );
                       },
                     );
                   },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _chip(
-      String value,
-      String text,
-      ) {
-    return Padding(
-      padding:
-      const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        selected: filter == value,
-        label: Text(text),
-        onSelected: (_) {
-          setState(() {
-            filter = value;
-          });
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

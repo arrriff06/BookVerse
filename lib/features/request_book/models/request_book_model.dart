@@ -10,6 +10,7 @@ class RequestBookModel {
   final String language;
   final String category;
   final String notes;
+  final String rejectReason;
   final String status;
   final String bookId;
   final String feedback;
@@ -27,6 +28,7 @@ class RequestBookModel {
     required this.language,
     required this.category,
     required this.notes,
+    required this.rejectReason,
     required this.status,
     required this.bookId,
     required this.feedback,
@@ -50,6 +52,7 @@ class RequestBookModel {
       language: data["language"] ?? "",
       category: data["category"] ?? "",
       notes: data["notes"] ?? "",
+      rejectReason: data["rejectReason"] ?? "",
       status: data["status"] ?? "pending",
       bookId: data["bookId"] ?? "",
       feedback: data["feedback"] ?? "",
@@ -69,6 +72,7 @@ class RequestBookModel {
       "language": language,
       "category": category,
       "notes": notes,
+      "rejectReason": rejectReason,
       "status": status,
       "bookId": bookId,
       "feedback": feedback,

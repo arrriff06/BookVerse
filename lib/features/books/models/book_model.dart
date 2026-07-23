@@ -9,7 +9,6 @@ class BookModel {
   final String coverImage;
 
   // Existing
-  final double price;
   final double rating;
   final int pages;
 
@@ -33,7 +32,6 @@ class BookModel {
     required this.description,
     required this.category,
     required this.coverImage,
-    required this.price,
     required this.rating,
     required this.pages,
     required this.pdfUrl,
@@ -58,7 +56,6 @@ class BookModel {
       category: data['category'] ?? '',
       coverImage: data['coverImage'] ?? '',
 
-      price: (data['price'] ?? 0).toDouble(),
       rating: (data['rating'] ?? 0).toDouble(),
       pages: (data['pages'] ?? 0) as int,
 
@@ -83,7 +80,6 @@ class BookModel {
       'category': category,
       'coverImage': coverImage,
 
-      'price': price,
       'rating': rating,
       'pages': pages,
 

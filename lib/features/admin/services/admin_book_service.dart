@@ -10,6 +10,13 @@ class AdminBookService {
 
     return snapshot.docs.length;
   }
+  static Stream<int> pendingRequests() {
+    return FirebaseFirestore.instance
+        .collection("request_books")
+        .where("status", isEqualTo: "pending")
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
 
   static Future<int> totalUsers() async {
     final snapshot =

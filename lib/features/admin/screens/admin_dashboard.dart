@@ -14,6 +14,7 @@ import 'manage_users_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/recent_book_tile.dart';
 import '../widgets/recent_user_tile.dart';
+import 'book_requests_screen.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -221,7 +222,7 @@ class AdminDashboard extends StatelessWidget {
                     ),
 
                     StatCard(
-                      title: "Wishlist",
+                      title: "Requested Books",
                       value: wishlist.toString(),
                       icon: Icons.favorite,
                     ),
@@ -324,6 +325,20 @@ class AdminDashboard extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) =>
                             const ManageUsersScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    DashboardCard(
+                      title: "Book Requests",
+                      icon: Icons.library_add_rounded,
+                      color: Colors.teal,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                            const BookRequestsScreen(),
                           ),
                         );
                       },

@@ -38,43 +38,39 @@ class RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date =
-    DateFormat("dd MMM yyyy").format(
-      request.createdAt.toDate(),
-    );
+    DateFormat("dd MMM yyyy").format(request.createdAt.toDate());
 
     return Card(
+      elevation: 4,
       margin: const EdgeInsets.only(bottom: 18),
-      elevation: 3,
-      shadowColor:
-      AppColors.primary.withValues(alpha: .08),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(22),
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            //----------------------------------
+            //------------------------------------------
             // Top
-            //----------------------------------
+            //------------------------------------------
 
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
                 Container(
-                  width: 65,
-                  height: 90,
+                  width: 70,
+                  height: 95,
                   decoration: BoxDecoration(
-                    color: AppColors.primary
-                        .withValues(alpha: .08),
-                    borderRadius:
-                    BorderRadius.circular(16),
+                    color: AppColors.primary.withValues(alpha: .08),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: const Icon(
                     Icons.menu_book_rounded,
-                    size: 40,
                     color: AppColors.primary,
+                    size: 42,
                   ),
                 ),
 
@@ -89,13 +85,12 @@ class RequestCard extends StatelessWidget {
                       Text(
                         request.bookName,
                         style: const TextStyle(
-                          fontWeight:
-                          FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
 
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
 
                       Text(
                         request.author,
@@ -104,7 +99,24 @@ class RequestCard extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+
+                          Chip(
+                            label: Text(request.language),
+                          ),
+
+                          Chip(
+                            label: Text(request.category),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
 
                       Row(
                         children: [
@@ -112,8 +124,7 @@ class RequestCard extends StatelessWidget {
                           Icon(
                             Icons.person,
                             size: 18,
-                            color:
-                            Colors.grey.shade600,
+                            color: Colors.grey.shade600,
                           ),
 
                           const SizedBox(width: 6),
@@ -122,8 +133,7 @@ class RequestCard extends StatelessWidget {
                             child: Text(
                               request.userName,
                               overflow:
-                              TextOverflow
-                                  .ellipsis,
+                              TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -137,8 +147,7 @@ class RequestCard extends StatelessWidget {
                           Icon(
                             Icons.email_outlined,
                             size: 18,
-                            color:
-                            Colors.grey.shade600,
+                            color: Colors.grey.shade600,
                           ),
 
                           const SizedBox(width: 6),
@@ -147,8 +156,7 @@ class RequestCard extends StatelessWidget {
                             child: Text(
                               request.email,
                               overflow:
-                              TextOverflow
-                                  .ellipsis,
+                              TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -159,9 +167,18 @@ class RequestCard extends StatelessWidget {
                       Text(
                         date,
                         style: TextStyle(
-                          color:
-                          Colors.grey.shade600,
+                          color: Colors.grey.shade600,
                           fontSize: 13,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        "Request ID : ${request.id.substring(0, 8)}",
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -172,22 +189,21 @@ class RequestCard extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            //----------------------------------
+            //------------------------------------------
+            // Status
+            //------------------------------------------
 
             Row(
               children: [
 
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                    _statusColor().withValues(
-                      alpha: .12,
-                    ),
+                    color: _statusColor()
+                        .withValues(alpha: .12),
                     borderRadius:
                     BorderRadius.circular(30),
                   ),
@@ -195,8 +211,7 @@ class RequestCard extends StatelessWidget {
                     request.status.toUpperCase(),
                     style: TextStyle(
                       color: _statusColor(),
-                      fontWeight:
-                      FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -206,30 +221,103 @@ class RequestCard extends StatelessWidget {
                 IconButton(
                   tooltip: "View",
                   onPressed: onView,
-                  icon: const Icon(
-                    Icons.visibility,
-                  ),
+                  icon: const Icon(Icons.visibility),
                 ),
 
-                IconButton(
-                  tooltip: "Upload",
-                  color: Colors.green,
-                  onPressed: onUpload,
-                  icon: const Icon(
-                    Icons.upload_file,
-                  ),
-                ),
+                if (request.status == "pending") ...[
 
-                IconButton(
-                  tooltip: "Reject",
-                  color: Colors.red,
-                  onPressed: onReject,
-                  icon: const Icon(
-                    Icons.close,
+                  IconButton(
+                    tooltip: "Upload",
+                    color: Colors.green,
+                    onPressed: onUpload,
+                    icon: const Icon(
+                      Icons.upload_file,
+                    ),
                   ),
-                ),
+
+                  IconButton(
+                    tooltip: "Reject",
+                    color: Colors.red,
+                    onPressed: onReject,
+                    icon: const Icon(
+                      Icons.close,
+                    ),
+                  ),
+                ],
               ],
             ),
+
+            //------------------------------------------
+            // Uploaded Banner
+            //------------------------------------------
+
+            if (request.status == "uploaded") ...[
+
+              const SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: .08),
+                  borderRadius:
+                  BorderRadius.circular(14),
+                ),
+                child: const Row(
+                  children: [
+
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
+
+                    SizedBox(width: 10),
+
+                    Expanded(
+                      child: Text(
+                        "This requested book has been uploaded successfully.",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            //------------------------------------------
+            // Rejected Banner
+            //------------------------------------------
+
+            if (request.status == "rejected") ...[
+
+              const SizedBox(height: 16),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: .08),
+                  borderRadius:
+                  BorderRadius.circular(14),
+                ),
+                child: const Row(
+                  children: [
+
+                    Icon(
+                      Icons.cancel,
+                      color: Colors.red,
+                    ),
+
+                    SizedBox(width: 10),
+
+                    Expanded(
+                      child: Text(
+                        "This request has been rejected.",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
